@@ -1,37 +1,28 @@
 import express from 'express';
 import http from 'http';
-import Face from './logic/Face';
-import Grid from './logic/Grid';
-import Square from './logic/Square';
+import cors from 'cors';
 
-const port = process.env.PORT || 3333;
+import routes from './routes';
+
+
+const SERVER_PORT = process.env.SERVER_PORT || 3333;
+const CLIENT_HOST_SOCKETIO = process.env.CLIENT_HOST_SOCKETIO || 'http://localhost:3000';
 
 const app = express();
+app.use(express.json());
+app.use(cors());
+app.use(routes);
+
+// Config for websocket
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: CLIENT_HOST_SOCKETIO,
         methods: ["GET", "POST"],
         allowedHeaders: ["my-custom-header"],
         credentials: true
     }
 });
+//--
 
-app.get('/draw', (req, res) => {
-    res.send('<strong>Hello</strong>');
-});
-
-
-const gameGrid: Grid = new Grid(1,1);
-
-io.on('connection', (socket: any) => {
-    console.log('One user connected! :)');
-
-    socket.on('play', (msg:any) => {
-        const face = gameGrid.requestFace(0,Number(msg.play),msg.user);
-        console.log(face);
-    })
-});
-
-
-server.listen(port, () => console.log('Server running on port 3333'));
+server.listen(SERVER_PORT, () => console.log('Server running on port 3333'));

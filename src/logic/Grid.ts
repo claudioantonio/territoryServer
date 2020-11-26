@@ -11,7 +11,7 @@ class Grid {
     }
 
     requestFace(squareIdx:number, faceIdx:number, owner:string){
-        return this.squares[squareIdx].requestFace(faceIdx-1,owner);      
+        return this.squares[squareIdx].requestFace(faceIdx,owner);      
     }
 }
 
