@@ -55,8 +55,8 @@ class Square {
      * return true if square was closed or false otherwise
      */
     requestFace(faceIdx:number,owner:string) {
-        if (this.isConquered()) return;
-        if (!this.hasAvailableFace()) return;
+        if (this.isConquered()) return false;
+        if (!this.hasAvailableFace()) return false;
 
         console.log('* Square.nAvailFaces:' + this.nAvailFaces);
         const face = this.faces[faceIdx];
@@ -65,8 +65,8 @@ class Square {
             if (!this.hasAvailableFace()) {
                 console.log(owner + ' conquered a square');
                 this.conquerSquare(owner);
+                return true;
             }
-            return true;
         }
 
         return false;

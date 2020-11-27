@@ -51,12 +51,17 @@ class Game {
     }
 
     tryCloseASquare(playerId:number,squareIdx:number,sideIdx:number) {
-        this.updateTurn();
         const wasClosed = this.board.requestFace(squareIdx,sideIdx,this.players[playerId-1]);
         if (wasClosed) {
-            this.points[playerId]++;
+            console.log('Game: square closed by ' + playerId);
+            this.points[playerId-1]++;
         }
+        this.updateTurn();
         return this.getGameInfo();
+    }
+
+    resetGame() {
+
     }
 }
 
