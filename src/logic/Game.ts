@@ -29,7 +29,7 @@ class Game {
 
         this.players.push(player);
         this.points.push(0);
-
+        console.log('User ' + player + ' was registered');
         return this.players.length;
     }
 
@@ -39,7 +39,7 @@ class Game {
     }
 
     getGameInfo() {
-        const info = {
+        let info = {
             player1: this.players[0],
             player2: this.players[1],
             score_player1: this.points[0],
@@ -60,8 +60,11 @@ class Game {
         return this.getGameInfo();
     }
 
-    resetGame() {
-
+    reset() {
+        this.board = new Grid(GRID_SIZE,GRID_SIZE);
+        this.players = [];
+        this.points= [];
+        this.turn=PLAYER1; // player1 starts
     }
 }
 

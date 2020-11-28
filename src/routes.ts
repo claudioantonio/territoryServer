@@ -24,13 +24,7 @@ routes.post('/register', (req, res) => {
 
 
 routes.get('/gameinfo', (req,res) => {
-    return res.status(201).json({
-        player1: 'xxx',
-        player2: 'yyy',
-        score_player1: 0,
-        score_player2: 0,
-        turn: '1',
-    },);
+    return res.status(201).json(game.getGameInfo());
 });
 
 
@@ -41,4 +35,11 @@ routes.post('/selection', (req,res) => {
 
     game.tryCloseASquare(player,squareIdx,sideIdx);
 });
+
+
+routes.get('/reset', (req,res) => {
+    game.reset();
+    return res.status(201);
+});
+
 export default routes;
