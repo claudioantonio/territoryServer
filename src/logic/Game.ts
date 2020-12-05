@@ -1,3 +1,4 @@
+import Edge from './Edge';
 import Grid from './Grid';
 
 const GRID_SIZE = 1;
@@ -14,7 +15,7 @@ class Game {
     turn: number;
 
     constructor() {
-        this.board = new Grid(GRID_SIZE,GRID_SIZE);
+        this.board = new Grid(400, 300, 4, 10);
         this.players = [];
         this.points= [];
         this.turn=PLAYER1; // player1 starts
@@ -51,7 +52,7 @@ class Game {
     }
 
     tryCloseASquare(playerId:number,squareIdx:number,sideIdx:number) {
-        const wasClosed = this.board.requestFace(squareIdx,sideIdx,this.players[playerId-1]);
+        const wasClosed = this.board.requestFace(sideIdx,this.players[playerId-1]);
         if (wasClosed) {
             console.log('Game: square closed by ' + playerId);
             this.points[playerId-1]++;
@@ -61,7 +62,7 @@ class Game {
     }
 
     reset() {
-        this.board = new Grid(GRID_SIZE,GRID_SIZE);
+        this.board = new Grid(400,300,2,10);
         this.players = [];
         this.points= [];
         this.turn=PLAYER1; // player1 starts

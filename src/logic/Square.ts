@@ -1,17 +1,19 @@
-import Face from "./Face";
+import Edge from './Edge';
+
+const SIDES:number = 4;
 
 class Square {
     owner: string;
-    faces: Face[];
-    nAvailFaces: number;
+    edges: Edge[];
+    nAvailFaces: number;    
 
-    constructor(){
-        this.owner='';
-        this.faces = new Array<Face>(4);
-        for (let index = 0; index < 4; index++) {
-            this.faces[index]=new Face();
+    constructor(edges:Edge[]){
+        if (edges.length!=SIDES) {
+            throw new Error("Edge array must have 4 edges");
         }
-        this.nAvailFaces=4;
+        this.owner='';
+        this.edges = edges;
+        this.nAvailFaces=SIDES;
     }
 
     /**
@@ -22,13 +24,17 @@ class Square {
         return this.nAvailFaces==0 ? false : true;
     }
 
+    contains(e:Edge) {
+        return this.edges.indexOf(e);
+    }
+
     /**
      * Set face ownership to a player
      * @param face Face the player selected
      * @param owner player
      */
-    provideFace(face:Face, owner:string) {
-        face.setOwner(owner);
+    provideFace(edgeIdx:number, owner:string) {
+        this.edges[edgeIdx].setOwner(owner);
         this.nAvailFaces--;
     }
 
@@ -43,7 +49,7 @@ class Square {
     /**
      * true if the square has owner or false otherwise
      */
-    isConquered() {
+    hasOwner() {
         return this.owner?.length>0? true : false;
     }
 
@@ -55,13 +61,13 @@ class Square {
      * return true if square was closed or false otherwise
      */
     requestFace(faceIdx:number,owner:string) {
-        if (this.isConquered()) return false;
+        if (this.hasOwner()) return false;
         if (!this.hasAvailableFace()) return false;
 
         console.log('* Square.nAvailFaces:' + this.nAvailFaces);
-        const face = this.faces[faceIdx];
-        if (face.isAvailable()){
-            this.provideFace(face,owner);
+        const face = this.edges[faceIdx];
+        if (face.hasOwner()==false){
+            this.provideFace(faceIdx,owner);
             if (!this.hasAvailableFace()) {
                 console.log(owner + ' conquered a square');
                 this.conquerSquare(owner);
