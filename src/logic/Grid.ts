@@ -56,41 +56,41 @@ class Grid {
                     )
                 );
                 edges.push(new Edge(
-                        this.gridPoints[(col+1)*gridSize+(row+1)],
-                        this.gridPoints[(col+1)*gridSize+row]
+                    this.gridPoints[(col+1)*gridSize+row],
+                    this.gridPoints[(col+1)*gridSize+(row+1)]    
                     )
                 );
                 edges.push(new Edge(
-                        this.gridPoints[(col+1)*gridSize+row],
-                        this.gridPoints[col*gridSize+row]
+                    this.gridPoints[col*gridSize+row],
+                    this.gridPoints[(col+1)*gridSize+row]    
                     )
                 );
                 this.squares.push(new Square(edges));
             }
         }
-        this.squares.forEach(s => {
-            console.log(s.edges);
-        });
     }
 
     /**
-     * Recebe uma aresta, atribui propriedade, determina o quadrado 
-     * correspondente e verifica se o quadrado foi fechado. Em caso 
-     * positivo, fecha quadrado, atribui propriedade.
-     * 
-     * retorna playresult contendo placar e um quadrado, se fechou.
+     * Close an edge
      *  
-     * @param faceIdx 
-     * @param owner 
+     * @param edge Edge to close 
+     * @param owner User who wants to own the edge
+     * 
+     * @returns Number of closed squares by closing the edge provided.
      */
-    requestFace(edge:Edge, owner:string) {
+    closeEdge(edge:Edge, owner:string) {
+        let squaredClosed:Square[] = [];
         this.squares.forEach(square => {
-            let edgeIdx = square.contains(edge);
-            if (edgeIdx>0) {
-                console.log("conquistou=" + square.requestFace(edgeIdx,owner));
+            let edgeIdx = square.findIndex(edge);
+            console.log("Grid: edgeIdx=" + edgeIdx);
+            if (edgeIdx>=0) {
+                if (square.closeEdge(edgeIdx,owner)) {
+                    squaredClosed.push(square);
+                    console.log("Grid: conquistou quadrado");
+                }
             }
         });
-        return true;
+        return squaredClosed.length;
     }
 }
 

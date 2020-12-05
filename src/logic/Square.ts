@@ -24,8 +24,13 @@ class Square {
         return this.nAvailFaces==0 ? false : true;
     }
 
-    contains(e:Edge) {
-        return this.edges.indexOf(e);
+    findIndex(otherEdge:Edge) {
+        return this.edges.findIndex( edge => {
+            let sameInitial:boolean = edge.initialPoint.equals(otherEdge.initialPoint);
+            let sameEnd:boolean = edge.endPoint.equals(otherEdge.endPoint);
+            return ((sameInitial)&&(sameEnd))? true : false;
+            }
+        );
     }
 
     /**
@@ -60,16 +65,16 @@ class Square {
      * 
      * return true if square was closed or false otherwise
      */
-    requestFace(faceIdx:number,owner:string) {
+    closeEdge(faceIdx:number,owner:string) {
         if (this.hasOwner()) return false;
-        if (!this.hasAvailableFace()) return false;
+        if (this.hasAvailableFace()==false) return false;
 
-        console.log('* Square.nAvailFaces:' + this.nAvailFaces);
-        const face = this.edges[faceIdx];
-        if (face.hasOwner()==false){
+        console.log('Square: Square.nAvailFaces:' + this.nAvailFaces);
+        const edge = this.edges[faceIdx];
+        if (edge.hasOwner()==false) {
             this.provideFace(faceIdx,owner);
             if (!this.hasAvailableFace()) {
-                console.log(owner + ' conquered a square');
+                console.log("Square: " + owner + ' conquered a square');
                 this.conquerSquare(owner);
                 return true;
             }
