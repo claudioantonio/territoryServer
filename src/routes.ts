@@ -1,4 +1,5 @@
 import {Router} from 'express';
+import socketIo from 'socket.io';
 import Edge from './logic/Edge';
 import Game from './logic/Game';
 import Point from './logic/Point';
@@ -26,7 +27,9 @@ routes.post('/register', (req, res) => {
 
 
 routes.get('/gameinfo', (req,res) => {
-    return res.status(201).json(game.getGameInfo());
+    let p1:Point = new Point(10,10);
+    let p2:Point = new Point(10,290);
+    return res.status(201).json(game.getGameInfo(new Edge(p1,p2)));
 });
 
 
@@ -40,11 +43,24 @@ routes.post('/selection', (req,res) => {
     const p1:Point = new Point(x1,y1);
     const p2:Point = new Point(x2,y2);
     const edge:Edge = new Edge(p1,p2);
-    console.log(edge);
-    console.log("---------------");
-    game.play(playerId,edge);
+
+    let playResult = game.play(playerId,edge);
+
+    broadCast(req, playResult);
+
+    return res.status(201).json(playResult);
 });
 
+
+function getSocket(req:any) {
+    console.log(req.app.get('socketio'));
+    return req.app.get('socketio');
+}
+
+function broadCast(req:any,playResult:any) {
+    const socket = getSocket(req);
+    socket.emit('gameUpdate',playResult);
+}
 
 routes.get('/reset', (req,res) => {
     game.reset();

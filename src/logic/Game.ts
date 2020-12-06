@@ -39,12 +39,13 @@ class Game {
         this.turn=newTurn;
     }
 
-    getGameInfo() {
+    getGameInfo(edge:Edge) {
         let info = {
             player1: this.players[0],
             player2: this.players[1],
             score_player1: this.points[0],
             score_player2: this.points[1],
+            lastPlay: edge,
             turn: this.turn,
         };
         console.log(info);
@@ -58,7 +59,7 @@ class Game {
             this.points[playerId-1]+=nClosedSquares;
         }
         this.updateTurn();
-        return this.getGameInfo();
+        return this.getGameInfo(edge);
     }
 
     reset() {
