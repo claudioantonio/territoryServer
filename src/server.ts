@@ -37,5 +37,5 @@ io.on("connection", (socket:SocketIO.Socket) => {
 
 
 // Config for http REST listening
-server.listen(SERVER_HTTP_PORT, () => console.log('Server running on port 3333'));
+server.listen(SERVER_HTTP_PORT, () => console.log('Server running on port ' + SERVER_HTTP_PORT));
 //--
