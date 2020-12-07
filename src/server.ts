@@ -4,7 +4,7 @@ import cors from 'cors';
 
 import routes from './routes';
 
-const SERVER_HTTP_PORT = process.env.SERVER_PORT || 3333;
+const SERVER_HTTP_PORT = process.env.PORT || 3333;
 const CLIENT_HOST_SOCKETIO = process.env.CLIENT_HOST_SOCKETIO || 'http://localhost:3000';
 
 const app = express();
