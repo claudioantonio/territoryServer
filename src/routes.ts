@@ -53,13 +53,12 @@ routes.post('/selection', (req,res) => {
 
 
 function getSocket(req:any) {
-    console.log(req.app.get('socketio'));
     return req.app.get('socketio');
 }
 
 function broadCast(req:any,playResult:any) {
-    const socket = getSocket(req);
-    socket.emit('gameUpdate',playResult);
+    const io = getSocket(req);
+    io.emit('gameUpdate',playResult);
 }
 
 routes.get('/reset', (req,res) => {
