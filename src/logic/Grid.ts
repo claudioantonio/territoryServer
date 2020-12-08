@@ -71,6 +71,22 @@ class Grid {
     }
 
     /**
+     * Rebuild the board game
+     * Useful to restart a game or start a new game.
+     * 
+     * @param width Canvas width (TODO: Should not be in backend)
+     * @param padding Space between grid points in canvas (TODO: Should not ne in backend)
+     * @param height Canvas height (TODO: Should not be in backend)
+     * @param gridSize Number of vertical and horizontal points in grid
+     */
+    reset(width:number,padding:number,height:number,gridSize:number) {
+        this.squares = [];
+        this.gridPoints = [];
+        this.createGridPoints(width, padding, height, gridSize);
+        this.createSquares(gridSize);
+    }
+
+    /**
      * Close an edge
      *  
      * @param edge Edge to close 

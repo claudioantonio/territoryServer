@@ -1,28 +1,27 @@
 import Edge from './Edge';
 import Grid from './Grid';
 
-const GRID_SIZE = 2;
+
+const GRID_SIZE = 4;
+const WIDTH = 400;
+const HEIGHT = 300;
+const PADDING = 10;
 const MAX_PLAYERS = 2;
 const PLAYER1 = 0;
 const PLAYER2 = 1;
 
 
 class Game {
-    
     board: Grid;
-    players: string[];
-    points: number[];
-    isOver: boolean;
-    turn: number;
-    message: string;
+    players: string[] = [];
+    points: number[] = [];
+    isOver: boolean = false;
+    turn: number = PLAYER1;
+    message: string = "";
+
 
     constructor() {
-        this.board = new Grid(400, 300, GRID_SIZE, 10);
-        this.players = [];
-        this.points= [];
-        this.isOver=false;
-        this.turn=PLAYER1; // player1 starts
-        this.message = "";
+        this.board = new Grid(WIDTH, HEIGHT, GRID_SIZE, PADDING);
     }
 
     canAddPlayer() {
@@ -75,7 +74,7 @@ class Game {
             this.points[playerId]+=nClosedSquares;
         }
     }
-    
+
     updateStatus() {
         if (this.board.hasOpenSquare()==false) {
             this.isOver=true;
@@ -95,11 +94,22 @@ class Game {
         return this.getGameInfo(edge);
     }
 
+/**
+     * Reset a game.
+     * Useful to restart a game or start a new game.
+     * 
+     * @param width Canvas width (TODO: Should not be in backend)
+     * @param padding Space between grid points in canvas (TODO: Should not ne in backend)
+     * @param height Canvas height (TODO: Should not be in backend)
+     * @param gridSize Number of vertical and horizontal points in grid
+     */
     reset() {
-        this.board = new Grid(400,300,2,10);
+        this.board.reset(WIDTH,PADDING,HEIGHT,GRID_SIZE);
         this.players = [];
-        this.points= [];
-        this.turn=PLAYER1; // player1 starts
+        this.points = [];
+        this.isOver = false;
+        this.turn = PLAYER1;
+        this.message = "";
     }
 }
 
