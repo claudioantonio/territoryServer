@@ -90,7 +90,20 @@ class Grid {
                 }
             }
         });
+        console.log("Grid: N. quadrados fechados=" + squaredClosed.length);
         return squaredClosed.length;
+    }
+
+    /**
+     * Check if there is any open square.
+     */
+    hasOpenSquare() {
+        for (let i = 0; i < this.squares.length; i++) {
+            if (this.squares[i].hasAvailableFace()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 
