@@ -25,6 +25,7 @@ class Game {
     }
 
     canAddPlayer() {
+        console.log(this.players);
         return this.players.length<MAX_PLAYERS ? true : false;
     }
 
@@ -94,7 +95,7 @@ class Game {
         return this.getGameInfo(edge);
     }
 
-/**
+    /**
      * Reset a game.
      * Useful to restart a game or start a new game.
      * 
