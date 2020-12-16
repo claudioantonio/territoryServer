@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(cors());
 app.use(routes);
 
-// Config for websocket listening
+// Config for socketio listening
 const server = http.createServer(app);
 const io = require('socket.io')(server, {
     cors: {

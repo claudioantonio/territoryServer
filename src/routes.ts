@@ -6,21 +6,70 @@ import Point from './logic/Point';
 
 const routes = Router();
 
+class Player {
+    id:number;
+    name:string;
+
+    constructor(id:number,name:string) {
+        this.id=id;
+        this.name=name;
+    }
+}
+
+const INITIAL_ID: number = 1;
+let IDVAL: number = INITIAL_ID;
+
+const waitingList: Player[] = [];
 const game:Game = new Game();
 
+
+function createPlayerId() {
+    return IDVAL++;
+}
+
+/**
+ * Endpoint to register players
+ */
 routes.post('/register', (req, res) => {
     try {
-        let playerNumber:number;
-        const player:string = req.body.user;
+        const playerName:string = req.body.user;
+        const playerId:number = createPlayerId();
+        let roomPass:string = 'WaitingRoom';
 
-        playerNumber=game.addPlayer(player);
-        
+        if ( (game.isReady()) || (game.isInProgress()) ) {
+            console.log('Routes: game ready or in progress');
+            waitingList.push(new Player(playerId,playerName));
+        } else {
+            if (waitingList.length==0) {
+                console.log('Routes: Empty waiting room');
+                waitingList.push(new Player(playerId,playerName));
+            } else if (waitingList.length==1) {
+                console.log('Routes: Waiting room has only one player');
+                const player1:Player = waitingList.shift()!; // Exclamation says I´m sure this is not undefined
+                const player2:Player = new Player(playerId,playerName);
+                game.addPlayer(player1.name);
+                game.addPlayer(player2.name);
+                roomPass = 'GameRoom';
+
+                broadCast(req,'enterGameRoom',{
+                    'invitationForPlayer': player1.id
+                });
+            } else {
+                throw new Error("Routes: Illegal state for game or waiting list");
+            }
+        }
+
+        broadCast(req,'waitingRoomUpdate',{
+            'waitingList': waitingList
+        });    
+
         return res.status(201).json({
-            'playerNumber': playerNumber,
+            'playerId': playerId,
+            'roomPass': roomPass
         }); 
     } catch (e) {
         return res.status(400).json({
-            error: 'Unexpected error while registering new player'
+            error: 'Routes: Unexpected error while registering new player'
         });
     }
 });
@@ -30,6 +79,22 @@ routes.get('/gameinfo', (req,res) => {
     let p1:Point = new Point(10,10);
     let p2:Point = new Point(10,290);
     return res.status(201).json(game.getGameInfo(new Edge(p1,p2)));
+});
+
+routes.get('/waitingroom', (req,res) => {
+    console.log('Route.ts: waitingroom called');
+
+        broadCast(req,'startGame',{
+            'player1Id': "1",
+            'waitingList': waitingList
+        });    
+
+    return res.status(201).json({
+        'gameStatus': game.getStatus(),
+        'player1': game.players[0],
+        'player2': game.players[1],
+        'waitingList': waitingList
+    }); 
 });
 
 
@@ -46,7 +111,7 @@ routes.post('/selection', (req,res) => {
 
     let playResult = game.play(playerId,edge);
 
-    broadCast(req, playResult);
+    broadCast(req, 'gameUpdate', playResult);
 
     return res.status(201).json(playResult);
 });
@@ -56,13 +121,16 @@ function getSocket(req:any) {
     return req.app.get('socketio');
 }
 
-function broadCast(req:any,playResult:any) {
+function broadCast(req:any,message:string,info:any) {
     const io = getSocket(req);
-    io.emit('gameUpdate',playResult);
+    io.emit(message,info);
 }
 
 routes.get('/reset', (req,res) => {
+    console.log('routes: before reset' + game.players);
+    waitingList.length=0;
     game.reset();
+    console.log('routes: after reset' + game.players);
     return res.status(201);
 });
 

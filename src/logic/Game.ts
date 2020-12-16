@@ -10,18 +10,37 @@ const MAX_PLAYERS = 2;
 const PLAYER1 = 0;
 const PLAYER2 = 1;
 
+const STATUS_NOT_READY:number = 1;
+const STATUS_READY:number = 2;
+const STATUS_IN_PROGRESS:number = 3;
+const STATUS_OVER:number = 4;
 
+/**
+ * Class to model the territory game
+ */
 class Game {
     board: Grid;
+    status: number = STATUS_NOT_READY;
     players: string[] = [];
     points: number[] = [];
-    isOver: boolean = false;
-    turn: number = PLAYER1;
+    turn: number = PLAYER1; // Player1 will start
     message: string = "";
 
 
     constructor() {
         this.board = new Grid(WIDTH, HEIGHT, GRID_SIZE, PADDING);
+    }
+
+    isReady() {
+        return (this.status==STATUS_READY)? true : false;
+    }
+
+    isInProgress() {
+        return (this.status==STATUS_IN_PROGRESS)? true : false;
+    }
+
+    getStatus() {
+        return this.status;
     }
 
     canAddPlayer() {
@@ -34,7 +53,10 @@ class Game {
 
         this.players.push(player);
         this.points.push(0);
-        console.log('User ' + player + ' was registered');
+
+        if (this.players.length==MAX_PLAYERS) this.status = STATUS_READY;
+
+        console.log('Game: User ' + player + ' was registered');
         return this.players.length;
     }
 
@@ -50,7 +72,7 @@ class Game {
             score_player1: this.points[0],
             score_player2: this.points[1],
             lastPlay: edge,
-            gameOver: this.isOver,
+            gameOver: this.status,
             turn: this.turn,
             message: this.message,
         };
@@ -78,13 +100,14 @@ class Game {
 
     updateStatus() {
         if (this.board.hasOpenSquare()==false) {
-            this.isOver=true;
+            this.status=STATUS_OVER;
             this.message=this.getMessage();
         }
-        this.isOver = (this.board.hasOpenSquare())? false : true;       
     }
 
     play(playerId:number,edge:Edge) {
+        if (this.status==STATUS_READY) this.status = STATUS_IN_PROGRESS;
+
         const playerName:string = this.players[playerId-1];
         const nClosedSquares = this.board.closeEdge(edge,playerName);
         console.log("Game: Update score " + this.points[playerId-1] + " for player=" + (playerId-1));
@@ -106,9 +129,9 @@ class Game {
      */
     reset() {
         this.board.reset(WIDTH,PADDING,HEIGHT,GRID_SIZE);
+        this.status = STATUS_NOT_READY;
         this.players = [];
         this.points = [];
-        this.isOver = false;
         this.turn = PLAYER1;
         this.message = "";
     }
