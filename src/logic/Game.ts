@@ -1,5 +1,6 @@
 import Edge from './Edge';
 import Grid from './Grid';
+import Player from './Player';
 
 
 const GRID_SIZE = 4;
@@ -21,8 +22,7 @@ const STATUS_OVER:number = 4;
 class Game {
     board: Grid;
     status: number = STATUS_NOT_READY;
-    players: string[] = [];
-    points: number[] = [];
+    players: Player[] = [];
     turn: number = PLAYER1; // Player1 will start
     message: string = "";
 
@@ -48,29 +48,45 @@ class Game {
         return this.players.length<MAX_PLAYERS ? true : false;
     }
 
-    addPlayer(player:string) {
+    addPlayer(player:Player) {
         if (!this.canAddPlayer()) return -1;
 
         this.players.push(player);
-        this.points.push(0);
 
         if (this.players.length==MAX_PLAYERS) this.status = STATUS_READY;
 
         console.log('Game: User ' + player + ' was registered');
-        return this.players.length;
+        return;
     }
 
+    /**
+     * Returns the id of the player who will play next
+     */
     updateTurn() {
         const newTurn = (this.turn == PLAYER1) ? PLAYER2 : PLAYER1;
-        this.turn=newTurn;
+        this.turn=this.players[newTurn].id;
+    }
+
+
+    // TODO Include score in Player class
+    getGameSetup() {
+        let setup = {
+            player1: this.players[0].name,
+            player2: this.players[1].name,
+            score_player1: this.players[0].score,
+            score_player2: this.players[1].score,
+            turn: this.turn,
+            gameOver: this.status,
+        };
+        return setup;
     }
 
     getGameInfo(edge:Edge) {
         let info = {
-            player1: this.players[0],
-            player2: this.players[1],
-            score_player1: this.points[0],
-            score_player2: this.points[1],
+            player1: this.players[0].name,
+            player2: this.players[1].name,
+            score_player1: this.players[0].score,
+            score_player2: this.players[1].score,
             lastPlay: edge,
             gameOver: this.status,
             turn: this.turn,
@@ -81,20 +97,14 @@ class Game {
     }
 
     getMessage() {
-        let diffPoints:number = this.points[0] - this.points[1];
+        let diffPoints:number = this.players[0].score - this.players[1].score;
         
         if (diffPoints===0) {
           return 'You both tied in the game!';
         } else if (diffPoints < 0) {
-          return (this.players[1] + ' won!!!');
+          return (this.players[1].name + ' won!!!');
         } else {
-          return (this.players[0] + ' won!!!');
-        }
-    }
-
-    updateScore(playerId:number,nClosedSquares:number) {
-        if (nClosedSquares>0) {
-            this.points[playerId]+=nClosedSquares;
+          return (this.players[0].name + ' won!!!');
         }
     }
 
@@ -105,14 +115,28 @@ class Game {
         }
     }
 
+    // TODO Is it the best way to locate the player?
+    getPlayerIndex(playerId:number) {
+        let result:number=0;
+        this.players.forEach((player,index) => {
+            if (playerId==player.id) {
+                result = index;
+            }
+        });
+        return result;
+    }
+
     play(playerId:number,edge:Edge) {
         if (this.status==STATUS_READY) this.status = STATUS_IN_PROGRESS;
 
-        const playerName:string = this.players[playerId-1];
-        const nClosedSquares = this.board.closeEdge(edge,playerName);
-        console.log("Game: Update score " + this.points[playerId-1] + " for player=" + (playerId-1));
-        this.updateScore(playerId-1,nClosedSquares);
-        console.log("Game: score updated to=" + this.points[playerId-1]);
+        const playerIndex = this.getPlayerIndex(playerId);
+        const player = this.players[playerIndex];
+
+        const nClosedSquares = this.board.closeEdge(edge,player.name);
+        console.log("Game: Update score " + player.score + " for player=" + (playerIndex));
+        player.updateScore(nClosedSquares);
+        console.log("Game: score updated to=" + player.score);
+
         this.updateStatus();
         this.updateTurn();
         return this.getGameInfo(edge);
@@ -131,7 +155,6 @@ class Game {
         this.board.reset(WIDTH,PADDING,HEIGHT,GRID_SIZE);
         this.status = STATUS_NOT_READY;
         this.players = [];
-        this.points = [];
         this.turn = PLAYER1;
         this.message = "";
     }

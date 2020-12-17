@@ -1,20 +1,14 @@
 import {Router} from 'express';
 import socketIo from 'socket.io';
+
+import Player from './logic/Player';
 import Edge from './logic/Edge';
 import Game from './logic/Game';
 import Point from './logic/Point';
 
+
 const routes = Router();
 
-class Player {
-    id:number;
-    name:string;
-
-    constructor(id:number,name:string) {
-        this.id=id;
-        this.name=name;
-    }
-}
 
 const INITIAL_ID: number = 1;
 let IDVAL: number = INITIAL_ID;
@@ -29,6 +23,11 @@ function createPlayerId() {
 
 /**
  * Endpoint to register players
+ * 
+ * Emit by socket message to update waiting room for all players
+ * 
+ * Return player id and a pass to waiting room or game room according
+ * with waiting list and game situation
  */
 routes.post('/register', (req, res) => {
     try {
@@ -47,8 +46,8 @@ routes.post('/register', (req, res) => {
                 console.log('Routes: Waiting room has only one player');
                 const player1:Player = waitingList.shift()!; // Exclamation says I´m sure this is not undefined
                 const player2:Player = new Player(playerId,playerName);
-                game.addPlayer(player1.name);
-                game.addPlayer(player2.name);
+                game.addPlayer(player1);
+                game.addPlayer(player2);
                 roomPass = 'GameRoom';
 
                 broadCast(req,'enterGameRoom',{
@@ -76,19 +75,12 @@ routes.post('/register', (req, res) => {
 
 
 routes.get('/gameinfo', (req,res) => {
-    let p1:Point = new Point(10,10);
-    let p2:Point = new Point(10,290);
-    return res.status(201).json(game.getGameInfo(new Edge(p1,p2)));
+    return res.status(201).json(
+        game.getGameSetup()
+    );
 });
 
 routes.get('/waitingroom', (req,res) => {
-    console.log('Route.ts: waitingroom called');
-
-        broadCast(req,'startGame',{
-            'player1Id': "1",
-            'waitingList': waitingList
-        });    
-
     return res.status(201).json({
         'gameStatus': game.getStatus(),
         'player1': game.players[0],
