@@ -67,11 +67,11 @@ class Square {
      */
     closeEdge(faceIdx:number,owner:string) {
         if (this.hasOwner()) return false;
-        if (this.hasAvailableFace()==false) return false;
+        if (!this.hasAvailableFace()) return false;
 
         console.log('Square: Square.nAvailFaces:' + this.nAvailFaces);
         const edge = this.edges[faceIdx];
-        if (edge.hasOwner()==false) {
+        if (!edge.hasOwner()) {
             this.provideFace(faceIdx,owner);
             if (!this.hasAvailableFace()) {
                 console.log("Square: " + owner + ' conquered a square');

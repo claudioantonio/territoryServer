@@ -17,25 +17,17 @@ class Grid {
      * @param gridSize 
      * @param padding 
      */
-    constructor(width:number, height:number, gridSize:number, padding:number) {
+    constructor(gridSize:number) {
         if (gridSize<2) {
             throw new Error("Grid size must be greater than 2");
         }
-        this.createGridPoints(width, padding, height, gridSize);
+        this.createGridPoints(gridSize);
         this.createSquares(gridSize);
     }
 
-    private createGridPoints(width: number, padding: number, height: number, gridSize: number) {
-        const BOTH_SIDES = 2;
-        const maxX = width - padding;
-        const maxY = height - padding;
-        const boardWidth = width - (BOTH_SIDES * padding);
-        const boardHeight = height - (BOTH_SIDES * padding);
-        const gridXSpace = boardWidth / (gridSize - 1);
-        const gridYSpace = boardHeight / (gridSize - 1);
-
-        for (let x = padding; Math.trunc(x) <= maxX; x = x + gridXSpace) { //TODO: Entender porque só pega o último x se usar trunc
-            for (let y = padding; y <= maxY; y = y + gridYSpace) {
+    private createGridPoints(gridSize: number) {
+        for (let x = 0; x <= gridSize; x++) {
+            for (let y = 0; y <= gridSize; y++) {
                 this.gridPoints.push(new Point(x,y));
             }
         }
@@ -82,7 +74,7 @@ class Grid {
     reset(width:number,padding:number,height:number,gridSize:number) {
         this.squares = [];
         this.gridPoints = [];
-        this.createGridPoints(width, padding, height, gridSize);
+        this.createGridPoints(gridSize);
         this.createSquares(gridSize);
     }
 

@@ -67,6 +67,7 @@ routes.post('/register', (req, res) => {
             'roomPass': roomPass
         }); 
     } catch (e) {
+        console.log(e);
         return res.status(400).json({
             error: 'Routes: Unexpected error while registering new player'
         });
@@ -81,16 +82,27 @@ routes.get('/gameinfo', (req,res) => {
 });
 
 routes.get('/waitingroom', (req,res) => {
+    console.log(game.players);
+    let player1name:string;
+    let player2name:string;
+    if ( game.isReady() || game.isInProgress() ) {
+        player1name = game.players[0].name;
+        player2name = game.players[1].name;
+    } else {
+        player1name = '???';
+        player2name = '???';
+    }
     return res.status(201).json({
         'gameStatus': game.getStatus(),
-        'player1': game.players[0],
-        'player2': game.players[1],
+        'player1': player1name,
+        'player2': player2name,
         'waitingList': waitingList
     }); 
 });
 
 
 routes.post('/selection', (req,res) => {
+    console.log('selection endpoint called');
     const playerId:number=req.body.player;
     const x1:number=req.body.x1;
     const y1:number=req.body.y1

@@ -8,6 +8,7 @@ const WIDTH = 400;
 const HEIGHT = 300;
 const PADDING = 10;
 const MAX_PLAYERS = 2;
+
 const PLAYER1 = 0;
 const PLAYER2 = 1;
 
@@ -28,7 +29,7 @@ class Game {
 
 
     constructor() {
-        this.board = new Grid(WIDTH, HEIGHT, GRID_SIZE, PADDING);
+        this.board = new Grid(GRID_SIZE);
     }
 
     isReady() {
@@ -60,36 +61,42 @@ class Game {
     }
 
     /**
-     * Returns the id of the player who will play next
+     * Change turn to the next player
      */
     updateTurn() {
-        const newTurn = (this.turn == PLAYER1) ? PLAYER2 : PLAYER1;
-        this.turn=this.players[newTurn].id;
+        this.turn = (this.turn == PLAYER1) ? PLAYER2 : PLAYER1;
     }
 
+    /**
+     * Return the id of the player for the current
+     */
+    getTurn() {
+        return this.players[this.turn].id;
+    }
 
     // TODO Include score in Player class
     getGameSetup() {
         let setup = {
-            player1: this.players[0].name,
-            player2: this.players[1].name,
-            score_player1: this.players[0].score,
-            score_player2: this.players[1].score,
-            turn: this.turn,
-            gameOver: this.status,
+            player1: this.players[PLAYER1].name,
+            player2: this.players[PLAYER2].name,
+            score_player1: this.players[PLAYER1].score,
+            score_player2: this.players[PLAYER2].score,
+            turn: this.getTurn(),
+            gameOver: (this.status==STATUS_OVER),
         };
         return setup;
     }
 
     getGameInfo(edge:Edge) {
         let info = {
-            player1: this.players[0].name,
-            player2: this.players[1].name,
-            score_player1: this.players[0].score,
-            score_player2: this.players[1].score,
+            player1Id: this.players[PLAYER1].id,
+            player1: this.players[PLAYER1].name,
+            player2: this.players[PLAYER2].name,
+            score_player1: this.players[PLAYER1].score,
+            score_player2: this.players[PLAYER2].score,
             lastPlay: edge,
-            gameOver: this.status,
-            turn: this.turn,
+            gameOver: (this.status==STATUS_OVER),
+            turn: this.getTurn(),
             message: this.message,
         };
         console.log(info);
@@ -97,14 +104,14 @@ class Game {
     }
 
     getMessage() {
-        let diffPoints:number = this.players[0].score - this.players[1].score;
+        let diffPoints:number = this.players[PLAYER1].score - this.players[PLAYER2].score;
         
         if (diffPoints===0) {
           return 'You both tied in the game!';
         } else if (diffPoints < 0) {
-          return (this.players[1].name + ' won!!!');
+          return (this.players[PLAYER2].name + ' won!!!');
         } else {
-          return (this.players[0].name + ' won!!!');
+          return (this.players[PLAYER1].name + ' won!!!');
         }
     }
 
