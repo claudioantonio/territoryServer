@@ -10,12 +10,8 @@ class Grid {
 
     
     /**
-     * TODO: Poderia receber um GridConfig para encapsular os params.
-     * 
-     * @param width 
-     * @param height 
-     * @param gridSize 
-     * @param padding 
+     * Construtor
+     * @param gridSize n. points (horizontal and vertical) for the grid
      */
     constructor(gridSize:number) {
         if (gridSize<2) {
@@ -26,35 +22,36 @@ class Grid {
     }
 
     private createGridPoints(gridSize: number) {
-        for (let x = 0; x <= gridSize; x++) {
-            for (let y = 0; y <= gridSize; y++) {
+        for (let x = 0; x < gridSize; x++) {
+            for (let y = 0; y < gridSize; y++) {
                 this.gridPoints.push(new Point(x,y));
             }
         }
     }
 
     createSquares(gridSize:number) {
-        for (let row = 0; row < (gridSize-1); row++) {
-            for (let col = 0; col < (gridSize-1); col++) {
+        for (let x = 0; x < (gridSize-1); x++) {
+            for (let y = 0; y < (gridSize-1); y++) {
                 let edges:Edge[] = [];
+                console.log('CreateSquare');
                 edges.push(new Edge(
-                        this.gridPoints[col*gridSize+row],
-                        this.gridPoints[col*gridSize+(row+1)]
+                        this.gridPoints[(x*gridSize)+y],
+                        this.gridPoints[(x*gridSize)+(y+1)]
                     )
                 );
                 edges.push(new Edge(
-                        this.gridPoints[col*gridSize+(row+1)],
-                        this.gridPoints[(col+1)*gridSize+(row+1)]
+                        this.gridPoints[(x*gridSize)+(y+1)],
+                        this.gridPoints[(x+1)*gridSize+(y+1)]
                     )
                 );
                 edges.push(new Edge(
-                    this.gridPoints[(col+1)*gridSize+row],
-                    this.gridPoints[(col+1)*gridSize+(row+1)]    
+                    this.gridPoints[(x+1)*gridSize+(y+1)],
+                    this.gridPoints[(x+1)*gridSize+y]    
                     )
                 );
                 edges.push(new Edge(
-                    this.gridPoints[col*gridSize+row],
-                    this.gridPoints[(col+1)*gridSize+row]    
+                    this.gridPoints[(x+1)*gridSize+y],
+                    this.gridPoints[(x*gridSize)+y]    
                     )
                 );
                 this.squares.push(new Square(edges));
@@ -90,11 +87,11 @@ class Grid {
         let squaredClosed:Square[] = [];
         this.squares.forEach(square => {
             let edgeIdx = square.findIndex(edge);
-            console.log("Grid: edgeIdx=" + edgeIdx);
             if (edgeIdx>=0) {
+                console.log('Grid - closeEdge - Achou edge');
                 if (square.closeEdge(edgeIdx,owner)) {
                     squaredClosed.push(square);
-                    console.log("Grid: conquistou quadrado");
+                    console.log("Grid - closeEdge - conquistou quadrado");
                 }
             }
         });

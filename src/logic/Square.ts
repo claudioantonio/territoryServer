@@ -25,12 +25,22 @@ class Square {
     }
 
     findIndex(otherEdge:Edge) {
+        console.log(this.edges);
         return this.edges.findIndex( edge => {
             let sameInitial:boolean = edge.initialPoint.equals(otherEdge.initialPoint);
             let sameEnd:boolean = edge.endPoint.equals(otherEdge.endPoint);
-            return ((sameInitial)&&(sameEnd))? true : false;
+            if ((sameInitial)&&(sameEnd)) {
+                console.log('Square - findIndex - Achou edge na ordem original');
+                return true;
             }
-        );
+            sameInitial = edge.initialPoint.equals(otherEdge.endPoint);
+            sameEnd = edge.endPoint.equals(otherEdge.initialPoint);
+            if ((sameInitial)&&(sameEnd)) {
+                console.log('Square - findIndex - Achou edge na ordem inversa');
+                return true;
+            }
+            return false;
+        });
     }
 
     /**
