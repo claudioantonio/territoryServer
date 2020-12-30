@@ -68,7 +68,7 @@ class Grid {
      * @param height Canvas height (TODO: Should not be in backend)
      * @param gridSize Number of vertical and horizontal points in grid
      */
-    reset(width:number,padding:number,height:number,gridSize:number) {
+    reset(gridSize:number) {
         this.squares = [];
         this.gridPoints = [];
         this.createGridPoints(gridSize);

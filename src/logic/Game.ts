@@ -3,10 +3,7 @@ import Grid from './Grid';
 import Player from './Player';
 
 
-const GRID_SIZE = 4;
-const WIDTH = 400;
-const HEIGHT = 300;
-const PADDING = 10;
+const GRID_SIZE = 2;
 const MAX_PLAYERS = 2;
 
 const PLAYER1 = 0;
@@ -153,13 +150,10 @@ class Game {
      * Reset a game.
      * Useful to restart a game or start a new game.
      * 
-     * @param width Canvas width (TODO: Should not be in backend)
-     * @param padding Space between grid points in canvas (TODO: Should not ne in backend)
-     * @param height Canvas height (TODO: Should not be in backend)
      * @param gridSize Number of vertical and horizontal points in grid
      */
     reset() {
-        this.board.reset(WIDTH,PADDING,HEIGHT,GRID_SIZE);
+        this.board.reset(GRID_SIZE);
         this.status = STATUS_NOT_READY;
         this.players = [];
         this.turn = PLAYER1;
