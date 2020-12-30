@@ -104,6 +104,11 @@ routes.get('/waitingroom', (req,res) => {
 routes.post('/selection', (req,res) => {
     console.log('selection endpoint called');
     const playerId:number=req.body.player;
+
+    if (game.getTurn()!=playerId) {
+        return res.status(201);
+    }
+
     const x1:number=req.body.x1;
     const y1:number=req.body.y1
     const x2:number=req.body.x2;
