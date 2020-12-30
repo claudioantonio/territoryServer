@@ -106,7 +106,9 @@ routes.post('/selection', (req,res) => {
     const playerId:number=req.body.player;
 
     if (game.getTurn()!=playerId) {
-        return res.status(201);
+        return res.status(400).json({
+            'message': 'Play rejected because it´s not your turn',
+        });
     }
 
     const x1:number=req.body.x1;
