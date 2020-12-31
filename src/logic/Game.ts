@@ -3,7 +3,7 @@ import Grid from './Grid';
 import Player from './Player';
 
 
-const GRID_SIZE = 2;
+const GRID_SIZE = 6;
 const MAX_PLAYERS = 2;
 
 const PLAYER1 = 0;
@@ -35,6 +35,10 @@ class Game {
 
     isInProgress() {
         return (this.status==STATUS_IN_PROGRESS)? true : false;
+    }
+
+    isOver() {
+        return (this.status==STATUS_OVER)? true : false;
     }
 
     getStatus() {
@@ -92,7 +96,8 @@ class Game {
             score_player1: this.players[PLAYER1].score,
             score_player2: this.players[PLAYER2].score,
             lastPlay: edge,
-            gameOver: (this.status==STATUS_OVER),
+            gameOver: this.isOver(),
+            whatsNext: {}, // Instructions when game is over
             turn: this.getTurn(),
             message: this.message,
         };
@@ -101,14 +106,33 @@ class Game {
     }
 
     getMessage() {
+        const winner = this.getWinner();
+        
+        if (winner==null) {
+          return 'You both tied in the game!';
+        } else {
+          return (winner.name + ' won!!!');
+        }
+    }
+
+    getLooser() {
+        let winner = this.getWinner();
+        if (this.players[PLAYER1].id==winner?.id) {
+            return this.players[PLAYER2];
+        } else {
+            return this.players[PLAYER1];
+        }
+    }
+
+    getWinner() {
         let diffPoints:number = this.players[PLAYER1].score - this.players[PLAYER2].score;
         
         if (diffPoints===0) {
-          return 'You both tied in the game!';
+          return null;
         } else if (diffPoints < 0) {
-          return (this.players[PLAYER2].name + ' won!!!');
+          return this.players[PLAYER2];
         } else {
-          return (this.players[PLAYER1].name + ' won!!!');
+          return this.players[PLAYER1];
         }
     }
 
@@ -147,13 +171,24 @@ class Game {
     }
 
     /**
+     * Prepare a new game
+     * @param p1 Player 1
+     * @param p2 Player 2
+     */
+    newGame(p1:Player, p2:Player) {
+        this.reset();
+        this.addPlayer(p1);
+        this.addPlayer(p2);
+    }
+
+    /**
      * Reset a game.
      * Useful to restart a game or start a new game.
      * 
      * @param gridSize Number of vertical and horizontal points in grid
      */
     reset() {
-        this.board.reset(GRID_SIZE);
+        this.board=new Grid(GRID_SIZE);
         this.status = STATUS_NOT_READY;
         this.players = [];
         this.turn = PLAYER1;

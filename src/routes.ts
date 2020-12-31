@@ -121,6 +121,34 @@ routes.post('/selection', (req,res) => {
     const edge:Edge = new Edge(p1,p2);
 
     let playResult = game.play(playerId,edge);
+    if (game.isOver()) {
+        const winner = game.getWinner();
+        if (waitingList.length>0) {
+            waitingList.push(game.getLooser());
+            let playerInvited = waitingList.shift()!;
+            if (winner!=null) {
+                winner.reset();
+                playerInvited.reset();
+                game.newGame(winner,playerInvited);
+            }
+            // Keep winner in game room and send looser to the waiting room
+            playResult.whatsNext = {
+                winner: {
+                    'playerId': winner?.id,
+                    'roomPass': 'GameRoom',    
+                },
+                looser: {
+                    'roomPass': 'WaitingRoom',
+                }
+            }
+            // Invite first in waiting room to game room
+            broadCast(req,'enterGameRoom',{
+                'invitationForPlayer': playerInvited.id,
+            });
+        } else {
+            //TODO
+        }
+    }
 
     broadCast(req, 'gameUpdate', playResult);
 

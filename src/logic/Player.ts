@@ -18,6 +18,10 @@ class Player {
             this.score+=nClosedSquares;
         }
     }
+
+    reset() {
+        this.score=0;
+    }
 }
 
 export default Player;
