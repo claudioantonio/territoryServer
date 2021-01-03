@@ -123,12 +123,16 @@ routes.post('/selection', (req,res) => {
     let playResult = game.play(playerId,edge);
     if (game.isOver()) {
         const winner = game.getWinner();
+        winner?.reset();
+        const looser = game.getLooser();
+        winner?.reset();
         if (waitingList.length>0) {
-            waitingList.push(game.getLooser());
+            // Add looser to waiting list
+            waitingList.push(looser);
+            // Prepare new game
             let playerInvited = waitingList.shift()!;
+            playerInvited.reset();
             if (winner!=null) {
-                winner.reset();
-                playerInvited.reset();
                 game.newGame(winner,playerInvited);
             }
             // Keep winner in game room and send looser to the waiting room
@@ -146,7 +150,21 @@ routes.post('/selection', (req,res) => {
                 'invitationForPlayer': playerInvited.id,
             });
         } else {
-            
+            game.reset();
+            // Add looser to waiting list
+            if (winner!=null) {
+                waitingList.push(winner);
+            }
+            // Winner goes to waiting list and looser goes to register page
+            playResult.whatsNext = {
+                winner: {
+                    'playerId': winner?.id,
+                    'roomPass': 'WaitingRoom',    
+                },
+                looser: {
+                    'roomPass': 'RegisterRoom',
+                }
+            }
         }
     }
 
