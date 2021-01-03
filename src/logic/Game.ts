@@ -76,8 +76,10 @@ class Game {
     }
 
     // TODO Include score in Player class
+    // TODO return Player class instead of individual attrs
     getGameSetup() {
         let setup = {
+            player1Id: this.players[PLAYER1].id,
             player1: this.players[PLAYER1].name,
             player2: this.players[PLAYER2].name,
             score_player1: this.players[PLAYER1].score,

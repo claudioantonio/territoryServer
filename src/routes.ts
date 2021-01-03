@@ -146,7 +146,7 @@ routes.post('/selection', (req,res) => {
                 'invitationForPlayer': playerInvited.id,
             });
         } else {
-            //TODO
+            
         }
     }
 
