@@ -21,7 +21,7 @@ class Game {
     board: Grid;
     status: number = STATUS_NOT_READY;
     players: Player[] = [];
-    turn: number = PLAYER1; // Player1 will start
+    turn: number = PLAYER1; // Player1 starts the game by default
     message: string = "";
 
 
@@ -46,7 +46,6 @@ class Game {
     }
 
     canAddPlayer() {
-        console.log(this.players);
         return this.players.length<MAX_PLAYERS ? true : false;
     }
 
@@ -138,13 +137,6 @@ class Game {
         }
     }
 
-    updateStatus() {
-        if (this.board.hasOpenSquare()==false) {
-            this.status=STATUS_OVER;
-            this.message=this.getMessage();
-        }
-    }
-
     // TODO Is it the best way to locate the player?
     getPlayerIndex(playerId:number) {
         let result:number=0;
@@ -156,6 +148,18 @@ class Game {
         return result;
     }
 
+    getBoard() {
+        return this.board;
+    }
+
+    updateStatus() {
+        if (this.board.hasOpenSquare()==false) {
+            this.status=STATUS_OVER;
+            this.message=this.getMessage();
+        }
+    }
+
+  
     play(playerId:number,edge:Edge) {
         if (this.status==STATUS_READY) this.status = STATUS_IN_PROGRESS;
 

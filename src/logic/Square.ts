@@ -25,7 +25,6 @@ class Square {
     }
 
     findIndex(otherEdge:Edge) {
-        console.log(this.edges);
         return this.edges.findIndex( edge => {
             let sameInitial:boolean = edge.initialPoint.equals(otherEdge.initialPoint);
             let sameEnd:boolean = edge.endPoint.equals(otherEdge.endPoint);

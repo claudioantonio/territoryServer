@@ -5,6 +5,7 @@ import Player from './logic/Player';
 import Edge from './logic/Edge';
 import Game from './logic/Game';
 import Point from './logic/Point';
+import BotPlayer from './logic/BotPlayer';
 
 
 const routes = Router();
@@ -14,6 +15,8 @@ const INITIAL_ID: number = 1;
 let IDVAL: number = INITIAL_ID;
 
 const waitingList: Player[] = [];
+waitingList.push(new BotPlayer());
+
 const game:Game = new Game();
 
 
@@ -38,24 +41,17 @@ routes.post('/register', (req, res) => {
         if ( (game.isReady()) || (game.isInProgress()) ) {
             console.log('Routes: game ready or in progress');
             waitingList.push(new Player(playerId,playerName));
-        } else {
-            if (waitingList.length==0) {
-                console.log('Routes: Empty waiting room');
-                waitingList.push(new Player(playerId,playerName));
-            } else if (waitingList.length==1) {
-                console.log('Routes: Waiting room has only one player');
-                const player1:Player = waitingList.shift()!; // Exclamation says I´m sure this is not undefined
-                const player2:Player = new Player(playerId,playerName);
-                game.addPlayer(player1);
-                game.addPlayer(player2);
-                roomPass = 'GameRoom';
+        } else { // Waiting for a player
+            console.log('Routes: Waiting room has only one player');
+            const player1:Player = waitingList.shift()!; // Exclamation says I´m sure this is not undefined
+            const player2:Player = new Player(playerId,playerName);
+            game.addPlayer(player1);
+            game.addPlayer(player2);
+            roomPass = 'GameRoom';
 
-                broadCast(req,'enterGameRoom',{
-                    'invitationForPlayer': player1.id
-                });
-            } else {
-                throw new Error("Routes: Illegal state for game or waiting list");
-            }
+            broadCast(req,'enterGameRoom',{
+               'invitationForPlayer': player1.id
+            });
         }
 
         broadCast(req,'waitingRoomUpdate',{
@@ -100,6 +96,24 @@ routes.get('/waitingroom', (req,res) => {
     }); 
 });
 
+routes.post('/botPlay', (req,res) => {
+    console.log('botPlay endpoint was called');
+
+    if (game.getTurn()!=0) {
+        return res.status(400).json({
+            'message': 'Play rejected because it´s not your turn',
+        });
+    }
+
+    const botPlayer:BotPlayer = game.players[0] as BotPlayer;
+    let playResult = botPlayer.play(game);
+    if (game.isOver()) {
+        handleGameOver(req,playResult);
+    } else {
+        broadCast(req, 'gameUpdate', playResult);
+    }
+    return res.status(201).json(playResult);
+});
 
 routes.post('/selection', (req,res) => {
     console.log('selection endpoint called');
@@ -121,51 +135,9 @@ routes.post('/selection', (req,res) => {
     const edge:Edge = new Edge(p1,p2);
 
     let playResult = game.play(playerId,edge);
+
     if (game.isOver()) {
-        const winner = game.getWinner();
-        winner?.reset();
-        const looser = game.getLooser();
-        winner?.reset();
-        if (waitingList.length>0) {
-            // Add looser to waiting list
-            waitingList.push(looser);
-            // Prepare new game
-            let playerInvited = waitingList.shift()!;
-            playerInvited.reset();
-            if (winner!=null) {
-                game.newGame(winner,playerInvited);
-            }
-            // Keep winner in game room and send looser to the waiting room
-            playResult.whatsNext = {
-                winner: {
-                    'playerId': winner?.id,
-                    'roomPass': 'GameRoom',    
-                },
-                looser: {
-                    'roomPass': 'WaitingRoom',
-                }
-            }
-            // Invite first in waiting room to game room
-            broadCast(req,'enterGameRoom',{
-                'invitationForPlayer': playerInvited.id,
-            });
-        } else {
-            game.reset();
-            // Add looser to waiting list
-            if (winner!=null) {
-                waitingList.push(winner);
-            }
-            // Winner goes to waiting list and looser goes to register page
-            playResult.whatsNext = {
-                winner: {
-                    'playerId': winner?.id,
-                    'roomPass': 'WaitingRoom',    
-                },
-                looser: {
-                    'roomPass': 'RegisterRoom',
-                }
-            }
-        }
+        handleGameOver(req,playResult);
     }
 
     broadCast(req, 'gameUpdate', playResult);
@@ -173,6 +145,53 @@ routes.post('/selection', (req,res) => {
     return res.status(201).json(playResult);
 });
 
+// TODO - REFACTOR FOR GOD SAKE!!!
+function handleGameOver(req:any,playResult:any) {
+    const winner = game.getWinner();
+    winner?.reset();
+    const looser = game.getLooser();
+    winner?.reset();
+    if (waitingList.length>0) {
+        // Add looser to waiting list
+        waitingList.push(looser);
+        // Prepare new game
+        let playerInvited = waitingList.shift()!;
+        playerInvited.reset();
+        if (winner!=null) {
+            game.newGame(winner,playerInvited);
+        }
+        // Keep winner in game room and send looser to the waiting room
+        playResult.whatsNext = {
+            winner: {
+                'playerId': winner?.id,
+                'roomPass': 'GameRoom',    
+            },
+            looser: {
+                'roomPass': 'WaitingRoom',
+            }
+        }
+        // Invite first in waiting room to game room
+        broadCast(req,'enterGameRoom',{
+            'invitationForPlayer': playerInvited.id,
+        });
+    } else {
+        game.reset();
+        // Add looser to waiting list
+        if (winner!=null) {
+            waitingList.push(winner);
+        }
+        // Winner goes to waiting list and looser goes to register page
+        playResult.whatsNext = {
+            winner: {
+                'playerId': winner?.id,
+                'roomPass': 'WaitingRoom',    
+            },
+            looser: {
+                'roomPass': 'RegisterRoom',
+            }
+        }
+    }
+}
 
 function getSocket(req:any) {
     return req.app.get('socketio');
