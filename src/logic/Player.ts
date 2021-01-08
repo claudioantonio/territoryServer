@@ -1,4 +1,3 @@
-
 /**
  * Models a player in the game
  */

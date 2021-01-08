@@ -41,11 +41,15 @@ class BotPlayer extends Player{
         let bestEdge=null;
         for (let i = 0; i < board.squares.length; i++) {
             const square = board.squares[i];
-            bestEdge = (square.nAvailFaces>2)? this.getFirstAvailableEdge(square) : null;
-            if (bestEdge==null) {
-                anyAvailEdge = (square.hasAvailableFace())? this.getFirstAvailableEdge(square) : null;
+            if (square.hasAvailableFace()) {
+                bestEdge = (square.nAvailFaces>2)? this.getFirstAvailableEdge(square) : null;
+                if (bestEdge==null) {
+                    anyAvailEdge = this.getFirstAvailableEdge(square);
+                } else {
+                    return bestEdge;
+                }    
             } else {
-                return bestEdge;
+                console.log('square ' + i + ' has not avail edge');
             }
         }
         return anyAvailEdge;   

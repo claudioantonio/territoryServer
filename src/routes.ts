@@ -147,16 +147,14 @@ routes.post('/selection', (req,res) => {
 
 // TODO - REFACTOR FOR GOD SAKE!!!
 function handleGameOver(req:any,playResult:any) {
-    const winner = game.getWinner();
-    winner?.reset();
+    const winner = game.getWinner();    
     const looser = game.getLooser();
-    winner?.reset();
+
     if (waitingList.length>0) {
         // Add looser to waiting list
         waitingList.push(looser);
         // Prepare new game
         let playerInvited = waitingList.shift()!;
-        playerInvited.reset();
         if (winner!=null) {
             game.newGame(winner,playerInvited);
         }
@@ -175,19 +173,15 @@ function handleGameOver(req:any,playResult:any) {
             'invitationForPlayer': playerInvited.id,
         });
     } else {
-        game.reset();
-        // Add looser to waiting list
-        if (winner!=null) {
-            waitingList.push(winner);
-        }
-        // Winner goes to waiting list and looser goes to register page
+        // Start a new game
+        game.newGame(winner!,looser);
         playResult.whatsNext = {
             winner: {
                 'playerId': winner?.id,
-                'roomPass': 'WaitingRoom',    
+                'roomPass': 'GameRoom',    
             },
             looser: {
-                'roomPass': 'RegisterRoom',
+                'roomPass': 'GameRoom',
             }
         }
     }

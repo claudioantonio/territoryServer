@@ -1,9 +1,10 @@
+import BotPlayer from './BotPlayer';
 import Edge from './Edge';
 import Grid from './Grid';
 import Player from './Player';
 
 
-const GRID_SIZE = 6;
+const GRID_SIZE = 3;
 const MAX_PLAYERS = 2;
 
 const PLAYER1 = 0;
@@ -56,7 +57,7 @@ class Game {
 
         if (this.players.length==MAX_PLAYERS) this.status = STATUS_READY;
 
-        console.log('Game: User ' + player + ' was registered');
+        console.log('Game: User ' + player.name + ' was registered');
         return;
     }
 
@@ -71,6 +72,8 @@ class Game {
      * Return the id of the player for the current
      */
     getTurn() {
+        console.log('Game - getTurn');
+        console.log(this.players);
         return this.players[this.turn].id;
     }
 
@@ -118,9 +121,13 @@ class Game {
 
     getLooser() {
         let winner = this.getWinner();
-        if (this.players[PLAYER1].id==winner?.id) {
+        console.log('GetLooser player1id=' + this.players[PLAYER1].id + ' winner id=' + winner!.id);
+        if (this.players[PLAYER1].id===winner!.id) {
+            console.log('getLooser avaliou ' + (this.players[PLAYER1].id===winner?.id) + ' e retornou');
+            console.log(this.players[PLAYER2]);
             return this.players[PLAYER2];
         } else {
+            console.log(this.players[PLAYER1]);
             return this.players[PLAYER1];
         }
     }
@@ -167,9 +174,7 @@ class Game {
         const player = this.players[playerIndex];
 
         const nClosedSquares = this.board.closeEdge(edge,player.name);
-        console.log("Game: Update score " + player.score + " for player=" + (playerIndex));
         player.updateScore(nClosedSquares);
-        console.log("Game: score updated to=" + player.score);
 
         this.updateStatus();
         this.updateTurn();
@@ -178,13 +183,24 @@ class Game {
 
     /**
      * Prepare a new game
+     * TODO Do botplayer always need to be player1?
      * @param p1 Player 1
      * @param p2 Player 2
      */
     newGame(p1:Player, p2:Player) {
         this.reset();
-        this.addPlayer(p1);
-        this.addPlayer(p2);
+        p1.reset();
+        p2.reset();
+        if (p1 instanceof BotPlayer) { // Player1 will be the bot
+            this.addPlayer(p1);
+            this.addPlayer(p2);    
+        } else if (p2 instanceof BotPlayer) { //Player1 will be the bot
+            this.addPlayer(p2);
+            this.addPlayer(p1);    
+        } else { // Player1 will be the last game winner
+            this.addPlayer(p1);
+            this.addPlayer(p2);
+        }
     }
 
     /**
