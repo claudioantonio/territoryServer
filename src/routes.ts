@@ -6,6 +6,7 @@ import Edge from './logic/Edge';
 import Game from './logic/Game';
 import Point from './logic/Point';
 import BotPlayer from './logic/BotPlayer';
+import { RSA_PKCS1_OAEP_PADDING } from 'constants';
 
 
 const routes = Router();
@@ -34,17 +35,22 @@ function createPlayerId() {
  */
 routes.post('/register', (req, res) => {
     try {
-        const playerName:string = req.body.user;
-        const playerId:number = createPlayerId();
+        const newPlayerName:string = req.body.user;
+        const newPlayerId:number = createPlayerId();
+
+        let player1:Player|null = null;
+        let player2:Player|null = null;
         let roomPass:string = 'WaitingRoom';
 
         if ( (game.isReady()) || (game.isInProgress()) ) {
             console.log('Routes: game ready or in progress');
-            waitingList.push(new Player(playerId,playerName));
+            player1=game.players[0];
+            player2=game.players[1];
+            waitingList.push(new Player(newPlayerId,newPlayerName));
         } else { // Waiting for a player
             console.log('Routes: Waiting room has only one player');
-            const player1:Player = waitingList.shift()!; // Exclamation says I´m sure this is not undefined
-            const player2:Player = new Player(playerId,playerName);
+            player1 = waitingList.shift()!; // Exclamation says I´m sure this is not undefined
+            player2 = new Player(newPlayerId,newPlayerName);
             game.addPlayer(player1);
             game.addPlayer(player2);
             roomPass = 'GameRoom';
@@ -54,12 +60,14 @@ routes.post('/register', (req, res) => {
             });
         }
 
-        broadCast(req,'waitingRoomUpdate',{
-            'waitingList': waitingList
-        });    
+        broadCast(
+            req,
+            'waitingRoomUpdate',
+            createWaitingRoomUpdateJSON(player1,player2,waitingList)
+        );    
 
         return res.status(201).json({
-            'playerId': playerId,
+            'playerId': newPlayerId,
             'roomPass': roomPass
         }); 
     } catch (e) {
@@ -70,6 +78,13 @@ routes.post('/register', (req, res) => {
     }
 });
 
+function createWaitingRoomUpdateJSON(p1:Player,p2:Player,waitingList:any) {
+    return {
+        'player1': p1,
+        'player2': p2,
+        'waitingList': waitingList,
+    };
+}
 
 routes.get('/gameinfo', (req,res) => {
     return res.status(201).json(
@@ -172,6 +187,12 @@ function handleGameOver(req:any,playResult:any) {
         broadCast(req,'enterGameRoom',{
             'invitationForPlayer': playerInvited.id,
         });
+        // Send info to update waiting room
+        broadCast(
+            req,
+            'waitingRoomUpdate',
+            createWaitingRoomUpdateJSON(winner!,playerInvited,waitingList)
+        );
     } else {
         // Start a new game
         game.newGame(winner!,looser);
