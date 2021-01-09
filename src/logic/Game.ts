@@ -173,7 +173,7 @@ class Game {
         const playerIndex = this.getPlayerIndex(playerId);
         const player = this.players[playerIndex];
 
-        const nClosedSquares = this.board.closeEdge(edge,player.name);
+        const nClosedSquares = this.board.conquerEdge(edge,player.name);
         player.updateScore(nClosedSquares);
 
         this.updateStatus();

@@ -1,6 +1,7 @@
 import Square from "./Square";
 import Point from './Point';
 import Edge from './Edge';
+import { exception } from "console";
 
 
 
@@ -115,6 +116,24 @@ class Grid {
     }
 
     /**
+     * Get squares that still have available edges
+     * @param squareIds List of squares' ids
+     */
+    getAvailableSquaresbyId(squareIds:number[]):Square[] {
+        let squaresFound:Square[] = [];
+        for (let i = 0; i < this.squares.length; i++) {
+            const currSquare = this.squares[i];
+            squareIds.forEach(id => {
+                if ((currSquare.id===id)&&(currSquare.hasAvailableFace())) {
+                    squaresFound.push(currSquare);
+                }
+            });
+            if (currSquare.id>squareIds[squareIds.length-1]) break;
+        }
+        return squaresFound;
+    }
+
+    /**
      * Close an edge
      *  
      * @param edge Edge to close 
@@ -122,20 +141,20 @@ class Grid {
      * 
      * @returns Number of closed squares by closing the edge provided.
      */
-    closeEdge(edge:Edge, owner:string) {
-        let squaredClosed:Square[] = [];
-        this.squares.forEach(square => {
-            let edgeIdx = square.findIndex(edge);
-            if (edgeIdx>=0) {
-                console.log('Grid - closeEdge - Achou edge');
-                if (square.closeEdge(edgeIdx,owner)) {
-                    squaredClosed.push(square);
-                    console.log("Grid - closeEdge - conquistou quadrado");
-                }
+    conquerEdge(edge:Edge, owner:string) {
+        let nClosedSquares:number=0;
+        for (let i = 0; i < this.uniqueEdges.length; i++) {
+            const gameEdge = this.uniqueEdges[i];
+            if ((gameEdge.equals(edge))&&(!gameEdge.hasOwner())) {
+                let squareIds:number[]=gameEdge.relatedSquareId;
+                let availSquaresBeforeClosing:Square[]=this.getAvailableSquaresbyId(squareIds);
+                gameEdge.setOwner(owner);
+                let availSquaresAfterClosing:Square[]=this.getAvailableSquaresbyId(squareIds);
+                nClosedSquares=availSquaresBeforeClosing.length-availSquaresAfterClosing.length;
+                break;
             }
-        });
-        console.log("Grid: N. quadrados fechados=" + squaredClosed.length);
-        return squaredClosed.length;
+        }
+        return nClosedSquares;
     }
 
     /**
