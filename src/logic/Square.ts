@@ -3,17 +3,20 @@ import Edge from './Edge';
 const SIDES:number = 4;
 
 class Square {
+    id: number;
     owner: string;
-    edges: Edge[];
-    nAvailFaces: number;    
+    edges: Edge[]; 
 
-    constructor(edges:Edge[]){
+    constructor(id:number,edges:Edge[]){
         if (edges.length!=SIDES) {
-            throw new Error("Edge array must have 4 edges");
+            throw new Error("Edge array must have exactly 4 edges");
         }
+        this.id=id;
         this.owner='';
+        edges.forEach(edge => {
+            edge.relatesTo(this.id);
+        });
         this.edges = edges;
-        this.nAvailFaces=SIDES;
     }
 
     /**
@@ -21,24 +24,25 @@ class Square {
      * and false otherwise
      */
     hasAvailableFace() {
-        return this.nAvailFaces==0 ? false : true;
+        for (let i = 0; i < this.edges.length; i++) {
+            const edge:Edge = this.edges[i];
+            if (edge.hasOwner()===false) return true;
+        }
+        return false;
+    }
+
+    getNumberOfAvailableFaces() {
+        let cont:number = 0;
+        for (let i = 0; i < this.edges.length; i++) {
+            const edge:Edge = this.edges[i];
+            if (edge.hasOwner()===false) cont++;
+        }
+        return cont;
     }
 
     findIndex(otherEdge:Edge) {
         return this.edges.findIndex( edge => {
-            let sameInitial:boolean = edge.initialPoint.equals(otherEdge.initialPoint);
-            let sameEnd:boolean = edge.endPoint.equals(otherEdge.endPoint);
-            if ((sameInitial)&&(sameEnd)) {
-                console.log('Square - findIndex - Achou edge na ordem original');
-                return true;
-            }
-            sameInitial = edge.initialPoint.equals(otherEdge.endPoint);
-            sameEnd = edge.endPoint.equals(otherEdge.initialPoint);
-            if ((sameInitial)&&(sameEnd)) {
-                console.log('Square - findIndex - Achou edge na ordem inversa');
-                return true;
-            }
-            return false;
+            return(edge.equals(otherEdge));
         });
     }
 
@@ -49,7 +53,6 @@ class Square {
      */
     provideFace(edgeIdx:number, owner:string) {
         this.edges[edgeIdx].setOwner(owner);
-        this.nAvailFaces--;
     }
 
     /**
@@ -78,7 +81,6 @@ class Square {
         if (this.hasOwner()) return false;
         if (!this.hasAvailableFace()) return false;
 
-        console.log('Square: Square.nAvailFaces:' + this.nAvailFaces);
         const edge = this.edges[faceIdx];
         if (!edge.hasOwner()) {
             this.provideFace(faceIdx,owner);

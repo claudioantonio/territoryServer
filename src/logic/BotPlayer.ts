@@ -37,22 +37,54 @@ class BotPlayer extends Player{
      * @param board Gameboard
      */
     findFirstAvailableEdge(board: Grid) {
+        console.log('FindFirstAvailableEdge')
         let anyAvailEdge=null;
         let bestEdge=null;
         for (let i = 0; i < board.squares.length; i++) {
             const square = board.squares[i];
             if (square.hasAvailableFace()) {
-                bestEdge = (square.nAvailFaces>2)? this.getFirstAvailableEdge(square) : null;
+                bestEdge = this.getBestEdge(square,board.squares);
                 if (bestEdge==null) {
                     anyAvailEdge = this.getFirstAvailableEdge(square);
                 } else {
                     return bestEdge;
                 }    
-            } else {
-                console.log('square ' + i + ' has not avail edge');
             }
         }
         return anyAvailEdge;   
+    }
+
+    getBestEdge(square:Square, allSquares:Square[]) {
+        console.log('--- BotPlayer - getBestEdge');
+        if (square.getNumberOfAvailableFaces()>2) {
+            let availEdge = this.getAvailableEdges(square);
+            for (let i = 0; i < availEdge.length; i++) {
+                const edge = availEdge[i];
+                if (edge.relatedSquareId.length>1) { // Shared edge
+                    console.log('--- BotPlayer - getBestEdge - shared edge was found');
+                    let otherSquareId:number=edge.getRelatedSquareOtherThan(square.id);
+                    if ( (otherSquareId>square.id) &&
+                         (allSquares[otherSquareId].getNumberOfAvailableFaces()>2)) {
+                            return edge;
+                    }
+                } else { // Not shared edge
+                    console.log('--- BotPlayer - getBestEdge - Not shared edge was found');
+                    return edge;
+                }
+            }
+        }
+        return null;
+    }
+
+    getAvailableEdges(square:Square) {
+        let availEdges:Edge[]=[];
+        for (let i = 0; i < square.edges.length; i++) {
+            const currEdge= square.edges[i];
+            if (!currEdge.hasOwner()) {
+                availEdges.push(currEdge);
+            }
+        }
+        return availEdges;
     }
 
     /**
@@ -62,7 +94,7 @@ class BotPlayer extends Player{
     findSquareReadyToClose(board:Grid) {
         for (let i = 0; i < board.squares.length; i++) {
             const square = board.squares[i];
-            let edge = (square.nAvailFaces===1)? this.getFirstAvailableEdge(square) : null;
+            let edge = (square.getNumberOfAvailableFaces()===1)? this.getFirstAvailableEdge(square) : null;
             if (edge!=null) {
                 return edge;
             }

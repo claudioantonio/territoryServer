@@ -43,12 +43,10 @@ routes.post('/register', (req, res) => {
         let roomPass:string = 'WaitingRoom';
 
         if ( (game.isReady()) || (game.isInProgress()) ) {
-            console.log('Routes: game ready or in progress');
             player1=game.players[0];
             player2=game.players[1];
             waitingList.push(new Player(newPlayerId,newPlayerName));
         } else { // Waiting for a player
-            console.log('Routes: Waiting room has only one player');
             player1 = waitingList.shift()!; // Exclamation says I´m sure this is not undefined
             player2 = new Player(newPlayerId,newPlayerName);
             game.addPlayer(player1);

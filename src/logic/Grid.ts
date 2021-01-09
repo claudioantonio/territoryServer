@@ -7,7 +7,7 @@ import Edge from './Edge';
 class Grid {
     squares: Square[] = [];
     gridPoints: Point[] = [];
-
+    uniqueEdges: Edge[] = [];
     
     /**
      * Construtor
@@ -29,34 +29,73 @@ class Grid {
         }
     }
 
+    getTopLeftCorner(x:number,y:number,gridSize:number) {
+        return (x*gridSize)+y;
+    }
+
+    getBottomLeftCorner(x:number,y:number,gridSize:number) {
+        return (x*gridSize)+(y+1);
+    }
+
+    getBottomRightCorner(x:number,y:number,gridSize:number) {
+        return (x+1)*gridSize+(y+1);
+    }
+
+    getTopRightCorner(x:number,y:number,gridSize:number) {
+        return (x+1)*gridSize+y
+    }
+
+    getEdge(p1:Point,p2:Point) {
+        let tempEdge:Edge = new Edge(p1,p2);
+        for (let i = 0; i < this.uniqueEdges.length; i++) {
+            const existingEdge = this.uniqueEdges[i];
+            if (existingEdge.equals(tempEdge)) {
+                return existingEdge;
+            }
+        }
+        this.uniqueEdges.push(tempEdge);
+        return tempEdge;
+    }
+
+    createEdges(x:number,y:number,gridSize:number){
+        let leftEdge: Edge = this.getEdge(
+            this.gridPoints[this.getTopLeftCorner(x,y,gridSize)],
+            this.gridPoints[this.getBottomLeftCorner(x,y,gridSize)]
+        );
+        let bottomEdge: Edge = this.getEdge(
+            this.gridPoints[this.getBottomLeftCorner(x,y,gridSize)],
+            this.gridPoints[this.getBottomRightCorner(x,y,gridSize)]
+        );
+        let rightEdge: Edge = this.getEdge(
+            this.gridPoints[this.getBottomRightCorner(x,y,gridSize)],
+            this.gridPoints[this.getTopRightCorner(x,y,gridSize)]
+        );
+        let topEdge: Edge = this.getEdge(
+            this.gridPoints[this.getTopRightCorner(x,y,gridSize)],
+            this.gridPoints[this.getTopLeftCorner(x,y,gridSize)]    
+        );
+        let edges:Edge[] = [leftEdge,bottomEdge,rightEdge,topEdge];
+        return edges;
+    }
+
+    createSquareId(x:number,y:number,gridSize:number) {
+        return (gridSize-1)*x + y;
+    }
+
     createSquares(gridSize:number) {
         for (let x = 0; x < (gridSize-1); x++) {
             for (let y = 0; y < (gridSize-1); y++) {
-                let edges:Edge[] = [];
-                console.log('CreateSquare');
-                edges.push(new Edge(
-                        this.gridPoints[(x*gridSize)+y],
-                        this.gridPoints[(x*gridSize)+(y+1)]
+                console.log('CreateSquare #' + this.createSquareId(x,y,gridSize));
+                let edges:Edge[]=this.createEdges(x,y,gridSize);
+                this.squares.push(
+                    new Square(
+                        this.createSquareId(x,y,gridSize),
+                        edges
                     )
                 );
-                edges.push(new Edge(
-                        this.gridPoints[(x*gridSize)+(y+1)],
-                        this.gridPoints[(x+1)*gridSize+(y+1)]
-                    )
-                );
-                edges.push(new Edge(
-                    this.gridPoints[(x+1)*gridSize+(y+1)],
-                    this.gridPoints[(x+1)*gridSize+y]    
-                    )
-                );
-                edges.push(new Edge(
-                    this.gridPoints[(x+1)*gridSize+y],
-                    this.gridPoints[(x*gridSize)+y]    
-                    )
-                );
-                this.squares.push(new Square(edges));
             }
         }
+        console.log('createSquares - created #uniqueEdges=' + this.uniqueEdges.length);
     }
 
     /**
