@@ -150,13 +150,26 @@ routes.post('/selection', (req,res) => {
     let playResult = game.play(playerId,edge);
 
     if (game.isOver()) {
-        handleGameOver(req,playResult);
+        if (game.isOverByDraw()) {
+            console.log('Gameover by draw');
+            handleGameOverByDraw(req,playResult);
+        } else {
+            console.log('Gameover with winner');
+            handleGameOver(req,playResult);
+        }
     }
 
     broadCast(req, 'gameUpdate', playResult);
 
     return res.status(201).json(playResult);
 });
+
+function handleGameOverByDraw(req:any,playResult:any) {
+    const p1 = game.players[0];    
+    const p2 = game.players[1];
+    game.newGame(p1,p2);
+    playResult.whatsNext = createPassport(p1,'GameRoom',p2,'GameRoom');    
+}
 
 // TODO - REFACTOR FOR GOD SAKE!!!
 function handleGameOver(req:any,playResult:any) {
@@ -172,15 +185,7 @@ function handleGameOver(req:any,playResult:any) {
             game.newGame(winner,playerInvited);
         }
         // Keep winner in game room and send looser to the waiting room
-        playResult.whatsNext = {
-            winner: {
-                'playerId': winner?.id,
-                'roomPass': 'GameRoom',    
-            },
-            looser: {
-                'roomPass': 'WaitingRoom',
-            }
-        }
+        playResult.whatsNext = createPassport(winner!,'GameRoom',looser,'waitingRoom');
         // Invite first in waiting room to game room
         broadCast(req,'enterGameRoom',{
             'invitationForPlayer': playerInvited.id,
@@ -194,14 +199,19 @@ function handleGameOver(req:any,playResult:any) {
     } else {
         // Start a new game
         game.newGame(winner!,looser);
-        playResult.whatsNext = {
-            winner: {
-                'playerId': winner?.id,
-                'roomPass': 'GameRoom',    
-            },
-            looser: {
-                'roomPass': 'GameRoom',
-            }
+        playResult.whatsNext = createPassport(winner!,'GameRoom',looser,'GameRoom');
+    }
+}
+
+function createPassport(p1:Player,roomForP1:string,p2:Player,roomForP2:string) {
+    return {
+        winner: {
+            'playerId': p1.id,
+            'roomPass': roomForP1, 
+        },
+        looser: {
+            'playerId': p2.id,
+            'roomPass': roomForP2,
         }
     }
 }

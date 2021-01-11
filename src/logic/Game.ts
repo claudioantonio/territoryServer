@@ -4,7 +4,7 @@ import Grid from './Grid';
 import Player from './Player';
 
 
-const GRID_SIZE = 4;
+const GRID_SIZE = 3;
 const MAX_PLAYERS = 2;
 
 const PLAYER1 = 0;
@@ -14,6 +14,7 @@ const STATUS_NOT_READY:number = 1;
 const STATUS_READY:number = 2;
 const STATUS_IN_PROGRESS:number = 3;
 const STATUS_OVER:number = 4;
+const STATUS_OVER_BY_DRAW:number = 5;
 
 /**
  * Class to model the territory game
@@ -39,7 +40,11 @@ class Game {
     }
 
     isOver() {
-        return (this.status==STATUS_OVER)? true : false;
+        return (this.status==STATUS_OVER||this.status==STATUS_OVER_BY_DRAW)? true : false;
+    }
+
+    isOverByDraw() {
+        return (this.status==STATUS_OVER_BY_DRAW)? true : false;
     }
 
     getStatus() {
@@ -88,7 +93,7 @@ class Game {
             score_player1: this.players[PLAYER1].score,
             score_player2: this.players[PLAYER2].score,
             turn: this.getTurn(),
-            gameOver: (this.status==STATUS_OVER),
+            gameOver: (this.isOver()),
         };
         return setup;
     }
@@ -111,24 +116,19 @@ class Game {
     }
 
     getMessage() {
-        const winner = this.getWinner();
-        
-        if (winner==null) {
-          return 'You both tied in the game!';
+        if (this.status==STATUS_OVER_BY_DRAW) {
+            return 'You both tied in the game!';
         } else {
-          return (winner.name + ' won!!!');
+            const winner = this.getWinner();
+            return (winner!.name + ' won!!!');
         }
     }
 
     getLooser() {
         let winner = this.getWinner();
-        console.log('GetLooser player1id=' + this.players[PLAYER1].id + ' winner id=' + winner!.id);
         if (this.players[PLAYER1].id===winner!.id) {
-            console.log('getLooser avaliou ' + (this.players[PLAYER1].id===winner?.id) + ' e retornou');
-            console.log(this.players[PLAYER2]);
             return this.players[PLAYER2];
         } else {
-            console.log(this.players[PLAYER1]);
             return this.players[PLAYER1];
         }
     }
@@ -162,7 +162,7 @@ class Game {
 
     updateStatus() {
         if (this.board.hasOpenSquare()==false) {
-            this.status=STATUS_OVER;
+            this.status=(this.getWinner()==null)? STATUS_OVER_BY_DRAW : STATUS_OVER;
             this.message=this.getMessage();
         }
     }
