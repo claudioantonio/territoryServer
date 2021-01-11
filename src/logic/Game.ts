@@ -4,7 +4,7 @@ import Grid from './Grid';
 import Player from './Player';
 
 
-const GRID_SIZE = 8;
+const GRID_SIZE = 6;
 const MAX_PLAYERS = 2;
 
 const PLAYER1 = 0;
