@@ -81,6 +81,7 @@ class Game {
     // TODO return Player class instead of individual attrs
     getGameSetup() {
         let setup = {
+            gridsize: GRID_SIZE,
             player1Id: this.players[PLAYER1].id,
             player1: this.players[PLAYER1].name,
             player2: this.players[PLAYER2].name,
