@@ -4,7 +4,7 @@ import Grid from './Grid';
 import Player from './Player';
 
 
-const GRID_SIZE = 6;
+const GRID_SIZE = 3;
 const MAX_PLAYERS = 2;
 
 const PLAYER1 = 0;
@@ -77,8 +77,6 @@ class Game {
      * Return the id of the player for the current
      */
     getTurn() {
-        console.log('Game - getTurn');
-        console.log(this.players);
         return this.players[this.turn].id;
     }
 
@@ -101,10 +99,9 @@ class Game {
     getGameInfo(edge:Edge) {
         let info = {
             player1Id: this.players[PLAYER1].id,
-            player1: this.players[PLAYER1].name,
-            player2: this.players[PLAYER2].name,
             score_player1: this.players[PLAYER1].score,
             score_player2: this.players[PLAYER2].score,
+            lastTurn: this.turn===PLAYER1? this.players[PLAYER2].id : this.players[PLAYER1].id,
             lastPlay: edge,
             gameOver: this.isOver(),
             whatsNext: {}, // Instructions when game is over
