@@ -4,11 +4,13 @@ import Grid from './Grid';
 import Player from './Player';
 
 
-const GRID_SIZE = 3;
+const GRID_SIZE = 6;
 const MAX_PLAYERS = 2;
 
-const PLAYER1 = 0;
-const PLAYER2 = 1;
+const PLAYER1:number = 0;
+const PLAYER2:number = 1;
+
+const BOTPLAYER_ID: number = 0;
 
 const STATUS_NOT_READY:number = 1;
 const STATUS_READY:number = 2;
@@ -24,11 +26,17 @@ class Game {
     status: number = STATUS_NOT_READY;
     players: Player[] = [];
     turn: number = PLAYER1; // Player1 starts the game by default
+    startTimestamp: number = -1;
+    lastPlayTimestamp: number = -1;
     message: string = "";
 
 
     constructor() {
         this.board = new Grid(GRID_SIZE);
+    }
+
+    isBotGame () {
+        return (this.players[PLAYER1].id===BOTPLAYER_ID)? true : false;
     }
 
     isReady() {
@@ -157,16 +165,27 @@ class Game {
         return this.board;
     }
 
+    getStartTimestamp() {
+        return this.startTimestamp;
+    }
+
+    getLastPlayTimestamp() {
+        return this.lastPlayTimestamp;
+    }
+
     updateStatus() {
         if (this.board.hasOpenSquare()==false) {
             this.status=(this.getWinner()==null)? STATUS_OVER_BY_DRAW : STATUS_OVER;
             this.message=this.getMessage();
         }
     }
-
   
     play(playerId:number,edge:Edge) {
-        if (this.status==STATUS_READY) this.status = STATUS_IN_PROGRESS;
+        if (this.status===STATUS_READY) {
+            this.status = STATUS_IN_PROGRESS;
+            this.startTimestamp = (new Date()).getTime();
+        }
+        this.lastPlayTimestamp = (new Date()).getTime();
 
         const playerIndex = this.getPlayerIndex(playerId);
         const player = this.players[playerIndex];
@@ -212,6 +231,8 @@ class Game {
         this.status = STATUS_NOT_READY;
         this.players = [];
         this.turn = PLAYER1;
+        this.startTimestamp = -1;
+        this.lastPlayTimestamp = -1;
         this.message = "";
     }
 }

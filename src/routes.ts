@@ -6,19 +6,56 @@ import Edge from './logic/Edge';
 import Game from './logic/Game';
 import Point from './logic/Point';
 import BotPlayer from './logic/BotPlayer';
-import { RSA_PKCS1_OAEP_PADDING } from 'constants';
 
+let socketServer:any;
 
 const routes = Router();
 
-
-const INITIAL_ID: number = 1;
-let IDVAL: number = INITIAL_ID;
+const game: Game = new Game();
+let lastPlayTimestamp:number = -1;
 
 const waitingList: Player[] = [];
 waitingList.push(new BotPlayer());
 
-const game: Game = new Game();
+const INITIAL_ID: number = 1;
+let IDVAL: number = INITIAL_ID;
+
+const TWO_DEAD_PLAYERS:number = 0;
+const ONE_DEAD_PLAYER:number = 1;
+
+const deadPlayerChecker = setInterval(function () {
+    if ((game.isReady()===false)&&(!game.isInProgress())) return;
+
+    let elapsedTimestamp:number;
+    let situation:number;
+    const currTimestamp:number = (new Date()).getTime();
+    if (game.getLastPlayTimestamp()<0) {
+        elapsedTimestamp = currTimestamp - game.getStartTimestamp();
+        situation=TWO_DEAD_PLAYERS;
+
+        broadCast('test',{
+            message: 'TWO DEAD PLAYERS',
+            gameStart: game.getStartTimestamp(),
+            lastPlayTimestamp: game.getLastPlayTimestamp(),
+            elapsedTimestamp: elapsedTimestamp,
+        });
+    } else {
+        elapsedTimestamp = currTimestamp - game.getLastPlayTimestamp();
+        situation=ONE_DEAD_PLAYER;
+
+        broadCast('test',{
+            message: 'ONE DEAD PLAYERS',
+            gameStart: game.getStartTimestamp(),
+            lastPlayTimestamp: game.getLastPlayTimestamp(),
+            elapsedTimestamp: elapsedTimestamp,
+        });
+    }
+
+    if (elapsedTimestamp > 60000) {
+        console.log(game);
+        handleGameOverByDeadPlayer(situation);
+    }
+}, 90000);
 
 
 function createPlayerId() {
@@ -45,7 +82,6 @@ routes.post('/register', (req, res) => {
         if ((game.isReady()) || (game.isInProgress())) {
             waitingList.push(new Player(newPlayerId, newPlayerName));
             broadCast(
-                req,
                 'waitingRoomUpdate',
                 createWaitingRoomUpdateJSON(waitingList)
             );    
@@ -117,6 +153,8 @@ routes.get('/waitingroom', (req, res) => {
 routes.post('/botPlay', (req, res) => {
     console.log('botPlay endpoint was called');
 
+    lastPlayTimestamp = (new Date()).getTime();
+
     if (game.getTurn() != 0) {
         return res.status(400).json({
             'message': 'Play rejected because it´s not your turn',
@@ -128,20 +166,22 @@ routes.post('/botPlay', (req, res) => {
     if (game.isOver()) {
         handleGameOver(req, playResult);
     } else {
-        broadCast(req, 'gameUpdate', playResult);
+        broadCast('gameUpdate', playResult);
     }
     return res.status(201).json(playResult);
 });
 
 routes.post('/selection', (req, res) => {
     console.log('selection endpoint called');
-    const playerId: number = req.body.player;
 
+    const playerId: number = req.body.player;
     if (game.getTurn() != playerId) {
         return res.status(400).json({
             'message': 'Play rejected because it´s not your turn',
         });
     }
+
+    lastPlayTimestamp = (new Date()).getTime();
 
     const x1: number = req.body.x1;
     const y1: number = req.body.y1
@@ -164,7 +204,7 @@ routes.post('/selection', (req, res) => {
         }
     }
 
-    broadCast(req, 'gameUpdate', playResult);
+    broadCast('gameUpdate', playResult);
 
     return res.status(201).json(playResult);
 });
@@ -191,20 +231,53 @@ function handleGameOver(req: any, playResult: any) {
         }
         // Keep winner in game room and send looser to the waiting room
         playResult.whatsNext = createPassport(winner!, 'GameRoom', looser, 'waitingRoom');
-        // Invite first in waiting room to game room
-        broadCast(req, 'enterGameRoom', {
-            'invitationForPlayer': playerInvited.id,
-        });
-        // Send info to update waiting room
-        broadCast(
-            req,
-            'waitingRoomUpdate',
-            createWaitingRoomUpdateJSON(waitingList)
-        );
+        broadcastNewGame(playerInvited,waitingList,false);
     } else {
-        // Start a new game
+        // Start a new game with same players
         game.newGame(winner!, looser);
         playResult.whatsNext = createPassport(winner!, 'GameRoom', looser, 'GameRoom');
+    }
+}
+
+function handleGameOverByDeadPlayer(situation:number) {
+    console.log('DEAD PLAYER DETECTED!!!');
+    const p1:Player = game.players[0];
+    const p2:Player = game.players[1];
+
+    if (game.isBotGame()) {
+        if (waitingList.length>0) {
+            let firstInWaitingList = waitingList.shift()!;
+            game.newGame(p1, firstInWaitingList);
+            broadcastNewGame(firstInWaitingList,waitingList,true);
+        } else {
+            waitingList.push(p1);
+            game.reset();
+            broadCast('emptyGameRoom',{});
+        }
+    } else {
+        //TODO Refactor solution to answer: Who did the last move?
+        if (waitingList.length>0) {
+            //TODO Start new game between the player who did the last move and first in the waitinglist
+        } else {
+            //TODO Start new game between bot and the player who did the last move
+        }
+    }
+}
+
+function broadcastNewGame(playerInvited:Player, waitingList:Player[], reloadClient:boolean) {
+    // Invite first in waiting room to game room
+    broadCast('enterGameRoom', {
+        'invitationForPlayer': playerInvited.id,
+    });
+    // Send info to update waiting room
+    broadCast(
+        'waitingRoomUpdate',
+        createWaitingRoomUpdateJSON(waitingList)
+    );
+    // Send event to reload clients page :-\
+    // TODO Complete page reload is not SPA behavior....
+    if (reloadClient) {
+        broadCast('reloadGameRoom', {});
     }
 }
 
@@ -221,12 +294,12 @@ function createPassport(p1: Player, roomForP1: string, p2: Player, roomForP2: st
     }
 }
 
-function getSocket(req: any) {
-    return req.app.get('socketio');
+function getSocket() {
+    return socketServer;
 }
 
-function broadCast(req: any, message: string, info: any) {
-    const io = getSocket(req);
+function broadCast(message: string, info: any) {
+    const io = getSocket();
     io.emit(message, info);
 }
 
@@ -238,4 +311,12 @@ routes.get('/reset', (req, res) => {
     return res.status(201);
 });
 
-export default routes;
+function disconnectHandler() {
+    console.log('Routes - A client disconnected');
+}
+
+export default function(SocketIO:any) {
+    socketServer = SocketIO.io;
+    SocketIO.setDisconnectListener(disconnectHandler);
+    return routes;
+}
